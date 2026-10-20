@@ -223,6 +223,8 @@ def run_pipeline(spec_path: Path = DEFAULT_SPEC, data_path: Path = DEFAULT_DATA,
         "final_equity": execution["equity_curve"][-1]["equity"],
         "trade_count": len(execution["trades"]),
         "trades": execution["trades"],
+        "access_log": execution["access_log"],
+        "equity_curve": execution["equity_curve"],
     }
     return report
 

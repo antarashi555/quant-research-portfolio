@@ -24,6 +24,8 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(set(report["stats"]), {"train", "test", "holdout"})
         self.assertGreater(report["trade_count"], 0)
         self.assertEqual(len(report["source_hashes"]["data_sha256"]), 64)
+        self.assertEqual(len(report["access_log"]), report["audit"]["reads_checked"])
+        self.assertEqual(len(report["equity_curve"]), 14)
 
     def test_injected_leak_is_rejected(self):
         report = run_pipeline(inject_leak=True)
