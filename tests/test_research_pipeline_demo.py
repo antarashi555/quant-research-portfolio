@@ -57,6 +57,39 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(trade["open_price"], by_day[trade["execution_date"]].open)
             self.assertGreater(trade["fee"], 0)
 
+    def test_buy_fee_is_paid_through_reduced_shares(self):
+        # A BUY spends the full cash budget including the fee, rather than
+        # recording a fee without charging it.
+        bars = load_bars(DEFAULT_DATA)
+        spec = load_spec(DEFAULT_SPEC, bars)
+        run = simulate(bars, spec)
+        first_buy = next(t for t in run["trades"] if t["side"] == "BUY")
+        rate = spec["cost_bps"] / 10000.0
+        shares = 1000.0 / (first_buy["open_price"] * (1.0 + rate))
+        purchase_value = shares * first_buy["open_price"]
+        self.assertAlmostEqual(purchase_value + first_buy["fee"], 1000.0, places=6)
+        self.assertAlmostEqual(first_buy["fee"], purchase_value * rate, places=6)
+        day_close = next(b.close for b in bars if b.day.isoformat() == first_buy["execution_date"])
+        equity = next(row["equity"] for row in run["equity_curve"]
+                      if row["date"] == first_buy["execution_date"])
+        self.assertAlmostEqual(equity, shares * day_close, places=6)
+        self.assertLess(equity, 1000.0 * day_close / first_buy["open_price"])
+
+    def test_sell_fee_is_deducted_from_cash(self):
+        bars = load_bars(DEFAULT_DATA)
+        spec = load_spec(DEFAULT_SPEC, bars)
+        run = simulate(bars, spec)
+        first_buy = next(t for t in run["trades"] if t["side"] == "BUY")
+        first_sell = next(t for t in run["trades"] if t["side"] == "SELL")
+        rate = spec["cost_bps"] / 10000.0
+        shares = 1000.0 / (first_buy["open_price"] * (1.0 + rate))
+        proceeds = shares * first_sell["open_price"]
+        self.assertAlmostEqual(first_sell["fee"], proceeds * rate, places=6)
+        cash_after_sell = proceeds - first_sell["fee"]
+        reported_equity = next(row["equity"] for row in run["equity_curve"]
+                               if row["date"] == first_sell["execution_date"])
+        self.assertAlmostEqual(reported_equity, cash_after_sell, places=6)
+
     def test_zero_cost_is_not_better_than_positive_cost(self):
         bars = load_bars(DEFAULT_DATA)
         spec = load_spec(DEFAULT_SPEC, bars)

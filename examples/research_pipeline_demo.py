@@ -122,7 +122,7 @@ def simulate(bars: list[Bar], spec: dict, inject_leak: bool = False) -> dict:
             target = 1 if history[-1].close > average else 0
             execution = bars[i + 1]
             if target and shares == 0:
-                shares = cash / (execution.open * (1.0 + rate))
+                shares = cash / (execution.open * (1.0 + rate))  # purchase + fee use the entire cash budget
                 fee = shares * execution.open * rate
                 cash = 0.0
                 side = "BUY"
@@ -149,7 +149,7 @@ def simulate(bars: list[Bar], spec: dict, inject_leak: bool = False) -> dict:
 
 
 def audit(bars: list[Bar], execution: dict, spec: dict) -> list[str]:
-    """Independent replay of availability and execution constraints."""
+    """Check *recorded* reads and fills, not missing logs or signal calculations."""
     issues = []
     by_day = {bar.day.isoformat(): bar for bar in bars}
     dates = [bar.day.isoformat() for bar in bars]
