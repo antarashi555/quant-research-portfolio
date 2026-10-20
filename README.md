@@ -24,6 +24,26 @@ AIが戦略を提案できても、その検証に未来情報の混入、過剰
 
 研究用の設計概要は [docs/technical-summary.md](docs/technical-summary.md) を参照してください。
 
+## 実行できる研究パイプライン（推奨デモ）
+
+[examples/research_pipeline_demo.py](examples/research_pipeline_demo.py) は、**仮説・仕様検証から結果保存まで**を1コマンドで追える、合成データ専用の小さな実行例です。旧PITデモより全体像を把握しやすく、外部APIや有料サービスも不要です。
+
+```bash
+python examples/research_pipeline_demo.py
+```
+
+実行すると、時点整合性のあるデータ参照 → 翌バー始値での模擬約定（費用込み） → 独立監査 → Train/Test/Holdoutの区間収益率 → JSONレポート保存まで進みます。監査に合格しても結果は `REVIEW_REQUIRED` で、人間の判断が必要です。結果は `artifacts/demo-report.json` に保存されます。
+
+**失敗するケースも体験できます：**
+
+```bash
+python examples/research_pipeline_demo.py --inject-leak --out artifacts/leak-report.json
+```
+
+意図的に未来データを参照すると監査が `REJECTED` を返し、終了コード2で止まります。壊れたことを確認するためのコマンドです。
+
+このデモは単一銘柄・短期間の合成データを使う**独立した説明用実装**であり、非公開の研究エンジンそのもの、統計的有意性、売買の有効性を証明しません。詳しい手順と限界は [技術概要](docs/technical-summary.md#ミニ研究パイプライン合成データ実行デモ) に記載しています。
+
 ## 公開デモ：未来情報を見ないデータ参照
 
 `examples/pit_demo.py` は、時点整合性（Point-in-Time）の考え方を確認するための**標準ライブラリだけで動く独立デモ**です。架空の銘柄・合成データを使用しているため、市場データの再配布は含みません。

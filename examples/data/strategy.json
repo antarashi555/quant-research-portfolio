@@ -1,0 +1,9 @@
+{
+  "strategy_id": "synthetic-sma-v1",
+  "hypothesis": "A small trailing-mean signal may be testable without future-price access.",
+  "symbol": "SYN",
+  "lookback": 3,
+  "cost_bps": 10,
+  "train_end": "2026-01-09",
+  "test_end": "2026-01-16"
+}
